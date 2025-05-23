@@ -1,0 +1,65 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id         String      @id
+  email      String      @unique @db.Text
+  password   String?     @db.Text
+  profile    Profile?
+  flashcards Flashcard[]
+  decks      Deck[]
+  lastLogin  DateTime?   @map("last_login")
+  joinedAt   DateTime    @default(now()) @map("joined_at")
+
+  @@map("users")
+}
+
+model Profile {
+  id        String   @id @default(cuid())
+  userId    String   @unique @map("user_id")
+  name      String?  @db.Text
+  avatarUrl String?  @db.Text @map("avatar_url")
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@map("profiles")
+}
+
+model Flashcard {
+  id          String      @id @default(cuid())
+  front       String      @db.Text
+  back        String      @db.Text
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+  userId      String      @map("user_id")
+  deckId      String      @map("deck_id")
+  user        User        @relation(fields: [userId], references: [id])
+  deck        Deck        @relation(fields: [deckId], references: [id])
+
+  @@map("flashcards")
+}
+
+model Deck {
+  id          String      @id @default(cuid())
+  name        String      @db.Text
+  description String?     @db.Text
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+  userId      String      @map("user_id")
+  user        User        @relation(fields: [userId], references: [id])
+  flashcards  Flashcard[]
+
+  @@map("decks")
+}
