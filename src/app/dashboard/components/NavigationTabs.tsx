@@ -9,9 +9,10 @@ interface NavigationTabsProps {
 interface TopNavProps {
   onMenuClick: () => void;
   isOpen: boolean;
+  onProfileClick: () => void;
 }
 
-export const TopNav = ({ onMenuClick, isOpen }: TopNavProps) => {
+export const TopNav = ({ onMenuClick, isOpen, onProfileClick }: TopNavProps) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   return (
@@ -56,6 +57,10 @@ export const TopNav = ({ onMenuClick, isOpen }: TopNavProps) => {
         <ProfileDropdown 
           isOpen={isDropdownOpen}
           onClose={() => setIsDropdownOpen(false)}
+          onProfileClick={() => {
+            onProfileClick();
+            setIsDropdownOpen(false);
+          }}
         />
       </div>
       <div className={`absolute bottom-0 ${isOpen ? 'left-44 sm:left-44 md:left-48' : 'left-24'} right-0 h-[1px] bg-gray-200 transition-all duration-300`}></div>

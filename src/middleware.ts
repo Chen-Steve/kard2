@@ -1,4 +1,4 @@
-import { createServerClient, CookieOptions } from '@supabase/ssr'
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
@@ -18,18 +18,13 @@ export async function middleware(request: NextRequest) {
           return request.cookies.get(name)?.value
         },
         set(name: string, value: string, options: CookieOptions) {
-          response.cookies.set({
-            name,
-            value,
+          response.cookies.set(name, value, {
             ...options,
+            sameSite: options.sameSite as "lax" | "strict" | "none" | undefined
           })
         },
-        remove(name: string, options: CookieOptions) {
-          response.cookies.set({
-            name,
-            value: '',
-            ...options,
-          })
+        remove(name: string) {
+          response.cookies.delete(name)
         },
       },
     }
@@ -58,13 +53,13 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Match all request paths except:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public files (public assets)
-     * - api routes that don't require authentication
+     * Match all routes that require authentication:
+     * - /dashboard routes (all dashboard pages)
+     * - /auth routes (for redirecting authenticated users)
+     * - /api routes (except public endpoints)
      */
     '/dashboard/:path*',
+    '/auth/:path*',
+    '/api/:path*',
   ],
 } 

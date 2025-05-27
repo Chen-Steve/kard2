@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Icon } from '@iconify/react';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import FormInput from '../../auth/components/FormInput';
 import PasswordStrengthMeter from '../../auth/components/PasswordStrength';
@@ -17,6 +17,7 @@ export default function AuthForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [supabase] = useState(() => createClient());
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

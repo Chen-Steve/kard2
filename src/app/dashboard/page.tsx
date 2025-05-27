@@ -2,10 +2,11 @@
 
 import { Icon } from '@iconify/react';
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase';
 import { Session } from '@supabase/supabase-js';
 import { NavigationTabs, TopNav } from './components/NavigationTabs';
 import { useRouter } from 'next/navigation';
+import Profile from './profile/Profile';
 
 const Sidebar = ({ isOpen }: { isOpen: boolean }) => {
   return (
@@ -20,7 +21,9 @@ export default function Dashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showProfile, setShowProfile] = useState(false);
   const router = useRouter();
+  const supabase = createClient();
 
   useEffect(() => {
     // Check current session
@@ -43,12 +46,16 @@ export default function Dashboard() {
     });
 
     return () => subscription.unsubscribe();
-  }, [router]);
+  }, [router, supabase]);
 
   if (loading) {
     return (
       <div className="flex flex-col h-screen bg-gray-50">
-        <TopNav onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} isOpen={isSidebarOpen} />
+        <TopNav 
+          onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} 
+          isOpen={isSidebarOpen}
+          onProfileClick={() => setShowProfile(true)}
+        />
         <div className="flex flex-1 overflow-hidden">
           <Sidebar isOpen={isSidebarOpen} />
           <main className="flex-1 p-4 sm:p-6 md:p-8 overflow-auto flex items-center justify-center">
@@ -59,20 +66,27 @@ export default function Dashboard() {
     );
   }
 
-  // No need for an explicit redirect here since it's handled in the useEffect
   if (!session) {
     return null;
   }
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
-      <TopNav onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} isOpen={isSidebarOpen} />
+      <TopNav 
+        onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} 
+        isOpen={isSidebarOpen}
+        onProfileClick={() => setShowProfile(true)}
+      />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar isOpen={isSidebarOpen} />
         <main className="flex-1 p-4 sm:p-6 md:p-8 overflow-auto">
-          <div className="text-center">
-            <p className="mt-2 text-gray-600">Start creating your flashcard decks.</p>
-          </div>
+          {showProfile ? (
+            <Profile />
+          ) : (
+            <div className="text-center">
+              <p className="mt-2 text-gray-600">Start creating your flashcard decks.</p>
+            </div>
+          )}
         </main>
       </div>
       {/* Overlay for mobile when sidebar is open */}
