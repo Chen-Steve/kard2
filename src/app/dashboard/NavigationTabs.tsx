@@ -5,6 +5,42 @@ interface NavigationTabsProps {
   isOpen: boolean;
 }
 
+interface TopNavProps {
+  onMenuClick: () => void;
+  isOpen: boolean;
+}
+
+export const TopNav = ({ onMenuClick, isOpen }: TopNavProps) => {
+  return (
+    <div className="h-16 bg-white flex items-center px-6 relative">
+      <button 
+        onClick={onMenuClick}
+        className="absolute left-[14px] p-2 hover:bg-gray-100 rounded-lg transition-colors"
+      >
+        <Icon 
+          icon="ph:list" 
+          className="w-5 h-5 text-gray-600"
+        />
+      </button>
+      {/* Search bar container */}
+      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md px-4">
+        <div className="relative">
+          <input 
+            type="text" 
+            placeholder="Search decks..." 
+            className="w-full h-10 px-4 pl-10 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+          />
+          <Icon 
+            icon="ph:magnifying-glass" 
+            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+          />
+        </div>
+      </div>
+      <div className={`absolute bottom-0 ${isOpen ? 'left-44 sm:left-44 md:left-48' : 'left-24'} right-0 h-[1px] bg-gray-200 transition-all duration-300`}></div>
+    </div>
+  );
+};
+
 export const NavigationTabs = ({ isOpen }: NavigationTabsProps) => {
   const [activeButton, setActiveButton] = useState('home');
 
