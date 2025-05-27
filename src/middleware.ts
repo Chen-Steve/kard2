@@ -65,6 +65,6 @@ export const config = {
      * - public files (public assets)
      * - api routes that don't require authentication
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$|api/public).*)',
+    '/dashboard/:path*',
   ],
 } 

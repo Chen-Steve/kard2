@@ -4,8 +4,8 @@ import { useState } from 'react';
 import { Icon } from '@iconify/react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
-import FormInput from '../auth/components/FormInput';
-import PasswordStrengthMeter from '../auth/components/PasswordStrength';
+import FormInput from '../../auth/components/FormInput';
+import PasswordStrengthMeter from '../../auth/components/PasswordStrength';
 
 export default function AuthForm() {
   const router = useRouter();
