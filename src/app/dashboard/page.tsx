@@ -45,7 +45,7 @@ export default function Dashboard() {
     if (loading) {
       return (
         <div className="flex items-center justify-center h-full">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+          <div className="animate-spin rounded-md h-8 w-8 border-b-2 border-blue-600" />
         </div>
       );
     }
@@ -82,7 +82,7 @@ export default function Dashboard() {
       />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar isOpen={isSidebarOpen} />
-        <main className="flex-1 p-4 sm:p-6 md:p-8 overflow-auto">
+        <main className="flex-1 p-1 overflow-auto">
           {mainContent()}
         </main>
       </div>
