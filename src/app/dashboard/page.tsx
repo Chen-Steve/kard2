@@ -9,20 +9,41 @@ import AuthForm from '../auth/AuthForm';
 
 const Sidebar = ({ isOpen }: { isOpen: boolean }) => {
   return (
-    <div className={`${isOpen ? 'w-44 sm:w-44 md:w-48' : 'w-16'} bg-white border-r border-gray-200 shadow-sm pt-2 
-                    transition-all duration-300 fixed sm:relative h-full z-20 overflow-hidden`}>
+    <div className={`${isOpen ? 'w-44 sm:w-44 md:w-48 translate-x-0' : 'w-44 sm:w-16 md:w-16 -translate-x-full sm:translate-x-0'} 
+                    bg-white shadow-sm
+                    transition-all duration-300 fixed sm:relative h-full z-20 overflow-hidden
+                    ${isOpen ? 'sm:w-44 md:w-48' : 'sm:w-16'}`}>
       <NavigationTabs isOpen={isOpen} />
     </div>
   );
 };
 
 export default function Dashboard() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
+
+  useEffect(() => {
+    // Set initial sidebar state based on screen size
+    const handleResize = () => {
+      if (window.innerWidth >= 640) { // sm breakpoint
+        setIsSidebarOpen(true);
+      } else {
+        setIsSidebarOpen(false);
+      }
+    };
+
+    // Set initial state
+    handleResize();
+
+    // Add resize listener
+    window.addEventListener('resize', handleResize);
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     // Check current session
@@ -82,17 +103,11 @@ export default function Dashboard() {
       />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar isOpen={isSidebarOpen} />
-        <main className="flex-1 p-1 overflow-auto">
+        <main className={`flex-1 p-1 overflow-auto transition-all duration-300
+                         ${isSidebarOpen ? 'sm:ml-0' : 'sm:ml-0'}`}>
           {mainContent()}
         </main>
       </div>
-      {/* Overlay for mobile when sidebar is open */}
-      {isSidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-10 sm:hidden"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
     </div>
   );
 }
