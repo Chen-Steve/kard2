@@ -1,5 +1,5 @@
 import { Icon } from '@iconify/react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@/lib/supabase';
 
 interface ProfileDropdownProps {
@@ -8,11 +8,33 @@ interface ProfileDropdownProps {
   onProfileClick: () => void;
   onAuthClick: () => void;
   isLoggedIn: boolean;
+  buttonRef: React.RefObject<HTMLButtonElement>;
 }
 
-export const ProfileDropdown = ({ isOpen, onClose, onProfileClick, onAuthClick, isLoggedIn }: ProfileDropdownProps) => {
+export const ProfileDropdown = ({ isOpen, onClose, onProfileClick, onAuthClick, isLoggedIn, buttonRef }: ProfileDropdownProps) => {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [supabase] = useState(() => createClient());
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current && 
+        !dropdownRef.current.contains(event.target as Node) &&
+        !buttonRef.current?.contains(event.target as Node)
+      ) {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen, onClose, buttonRef]);
 
   useEffect(() => {
     // Get user email from session only if logged in
@@ -28,7 +50,7 @@ export const ProfileDropdown = ({ isOpen, onClose, onProfileClick, onAuthClick, 
   if (!isOpen) return null;
 
   return (
-    <div className="absolute right-0 mt-4 w-64 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden z-50">
+    <div ref={dropdownRef} className="absolute right-0 mt-4 w-64 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden z-50">
       {isLoggedIn ? (
         <>
           <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
@@ -37,13 +59,13 @@ export const ProfileDropdown = ({ isOpen, onClose, onProfileClick, onAuthClick, 
               {userEmail || 'Loading...'}
             </div>
           </div>
-          <div className="py-1">
+          <div>
             <button 
               onClick={() => {
                 onProfileClick();
                 onClose();
               }}
-              className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 transition-colors flex items-center gap-2"
+              className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition-colors flex items-center gap-2 border-b border-gray-100"
             >
               <Icon icon="ph:user" className="w-4 h-4" />
               View Profile
@@ -53,7 +75,7 @@ export const ProfileDropdown = ({ isOpen, onClose, onProfileClick, onAuthClick, 
                 await supabase.auth.signOut();
                 onClose();
               }}
-              className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 transition-colors flex items-center gap-2"
+              className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition-colors flex items-center gap-2"
             >
               <Icon icon="ph:sign-out" className="w-4 h-4" />
               Sign out
@@ -61,13 +83,13 @@ export const ProfileDropdown = ({ isOpen, onClose, onProfileClick, onAuthClick, 
           </div>
         </>
       ) : (
-        <div className="py-1">
+        <div>
           <button 
             onClick={() => {
               onAuthClick();
               onClose();
             }}
-            className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 transition-colors flex items-center gap-2"
+            className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition-colors flex items-center gap-2"
           >
             <Icon icon="ph:sign-in" className="w-4 h-4" />
             Sign up / Login

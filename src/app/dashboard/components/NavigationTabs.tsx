@@ -1,5 +1,5 @@
 import { Icon } from '@iconify/react';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { ProfileDropdown } from './ProfileDropdown';
 
 interface NavigationTabsProps {
@@ -16,6 +16,7 @@ interface TopNavProps {
 
 export const TopNav = ({ onMenuClick, isOpen, onProfileClick, onAuthClick, isLoggedIn = false }: TopNavProps) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const profileButtonRef = useRef<HTMLButtonElement>(null) as React.RefObject<HTMLButtonElement>;
 
   return (
     <>
@@ -46,6 +47,7 @@ export const TopNav = ({ onMenuClick, isOpen, onProfileClick, onAuthClick, isLog
         {/* Profile button with dropdown */}
         <div className="absolute right-6">
           <button 
+            ref={profileButtonRef}
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             className="p-2 hover:bg-gray-100 rounded-full transition-colors group"
           >
@@ -60,6 +62,7 @@ export const TopNav = ({ onMenuClick, isOpen, onProfileClick, onAuthClick, isLog
             </div>
           </button>
           <ProfileDropdown 
+            buttonRef={profileButtonRef}
             isOpen={isDropdownOpen}
             onClose={() => setIsDropdownOpen(false)}
             onProfileClick={() => {
