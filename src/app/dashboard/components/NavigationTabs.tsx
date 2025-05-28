@@ -87,7 +87,7 @@ export const NavigationTabs = ({ isOpen }: NavigationTabsProps) => {
   const [activeButton, setActiveButton] = useState('home');
 
   return (
-    <nav className="px-3 whitespace-nowrap">
+    <nav className={`px-3 whitespace-nowrap transition-all duration-300 ${isOpen ? 'w-64' : 'w-16'}`}>
       <ul className="space-y-2">
         <li>
           <button 
@@ -103,7 +103,7 @@ export const NavigationTabs = ({ isOpen }: NavigationTabsProps) => {
                 className={`w-5 h-5 ${activeButton === 'home' ? 'text-blue-600' : 'text-gray-600'} flex-shrink-0`} 
               />
             </div>
-            <span className={`${isOpen ? 'block' : 'hidden'} transition-all duration-300`}>Home</span>
+            <span className={`overflow-hidden transition-all duration-300 ${isOpen ? 'opacity-100 w-auto' : 'opacity-0 w-0'}`}>Home</span>
           </button>
         </li>
         <li>
@@ -120,7 +120,7 @@ export const NavigationTabs = ({ isOpen }: NavigationTabsProps) => {
                 className={`w-5 h-5 ${activeButton === 'decks' ? 'text-blue-600' : 'text-gray-600'} flex-shrink-0`} 
               />
             </div>
-            <span className={`${isOpen ? 'block' : 'hidden'} transition-all duration-300`}>Your Decks</span>
+            <span className={`overflow-hidden transition-all duration-300 ${isOpen ? 'opacity-100 w-auto' : 'opacity-0 w-0'}`}>Your Decks</span>
           </button>
         </li>
         <li>
@@ -128,9 +128,7 @@ export const NavigationTabs = ({ isOpen }: NavigationTabsProps) => {
             <div className="flex items-center min-w-[20px] justify-center">
               <Icon icon="ph:plus-circle" className="w-5 h-5 text-gray-600 group-hover:text-blue-600 transition-colors" />
             </div>
-            <span className={`${isOpen ? 'block' : 'hidden'} transition-all duration-300 text-blue-600 font-medium`}>
-              Create
-            </span>
+            <span className={`overflow-hidden transition-all duration-300 text-blue-600 font-medium ${isOpen ? 'opacity-100 w-auto' : 'opacity-0 w-0'}`}>Create</span>
           </button>
         </li>
         
@@ -153,7 +151,7 @@ export const NavigationTabs = ({ isOpen }: NavigationTabsProps) => {
                 className={`w-5 h-5 ${activeButton === 'learn' ? 'text-blue-600' : 'text-gray-600'} flex-shrink-0`} 
               />
             </div>
-            <span className={`${isOpen ? 'block' : 'hidden'} transition-all duration-300`}>Learn</span>
+            <span className={`overflow-hidden transition-all duration-300 ${isOpen ? 'opacity-100 w-auto' : 'opacity-0 w-0'}`}>Learn</span>
           </button>
         </li>
         <li>
@@ -170,7 +168,7 @@ export const NavigationTabs = ({ isOpen }: NavigationTabsProps) => {
                 className={`w-5 h-5 ${activeButton === 'test' ? 'text-blue-600' : 'text-gray-600'} flex-shrink-0`} 
               />
             </div>
-            <span className={`${isOpen ? 'block' : 'hidden'} transition-all duration-300`}>Test</span>
+            <span className={`overflow-hidden transition-all duration-300 ${isOpen ? 'opacity-100 w-auto' : 'opacity-0 w-0'}`}>Test</span>
           </button>
         </li>
         <li>
@@ -187,7 +185,7 @@ export const NavigationTabs = ({ isOpen }: NavigationTabsProps) => {
                 className={`w-5 h-5 ${activeButton === 'matching' ? 'text-blue-600' : 'text-gray-600'} flex-shrink-0`} 
               />
             </div>
-            <span className={`${isOpen ? 'block' : 'hidden'} transition-all duration-300`}>Matching</span>
+            <span className={`overflow-hidden transition-all duration-300 ${isOpen ? 'opacity-100 w-auto' : 'opacity-0 w-0'}`}>Matching</span>
           </button>
         </li>
         <li>
@@ -204,7 +202,7 @@ export const NavigationTabs = ({ isOpen }: NavigationTabsProps) => {
                 className={`w-5 h-5 ${activeButton === 'kchat' ? 'text-blue-600' : 'text-gray-600'} flex-shrink-0`} 
               />
             </div>
-            <span className={`${isOpen ? 'block' : 'hidden'} transition-all duration-300`}>K-Chat</span>
+            <span className={`overflow-hidden transition-all duration-300 ${isOpen ? 'opacity-100 w-auto' : 'opacity-0 w-0'}`}>K-Chat</span>
           </button>
         </li>
       </ul>
