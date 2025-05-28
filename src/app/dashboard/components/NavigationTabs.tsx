@@ -87,7 +87,7 @@ export const NavigationTabs = ({ isOpen }: NavigationTabsProps) => {
   const [activeButton, setActiveButton] = useState('home');
 
   return (
-    <nav className={`px-3 whitespace-nowrap transition-all duration-300 ${isOpen ? 'w-64' : 'w-16'}`}>
+    <nav className={`px-3 pr-2 whitespace-nowrap transition-all duration-300 ${isOpen ? 'w-64' : 'w-16'}`}>
       <ul className="space-y-2">
         <li>
           <button 
