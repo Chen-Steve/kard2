@@ -1,175 +1,96 @@
-"use client"
-
-import { useState } from 'react';
 import { Icon } from '@iconify/react';
-import { createClient } from '@/lib/supabase';
-import { useRouter } from 'next/navigation';
-import FormInput from '../../auth/components/FormInput';
-import PasswordStrengthMeter from '../../auth/components/PasswordStrength';
+import { useState } from 'react';
 
-export default function AuthForm() {
-  const router = useRouter();
-  const [isSignIn, setIsSignIn] = useState(true);
+interface AuthFormProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export const AuthForm = ({ isOpen, onClose }: AuthFormProps) => {
+  const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [supabase] = useState(() => createClient());
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  if (!isOpen) return null;
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-    setIsLoading(true);
-
-    try {
-      if (isSignIn) {
-        // Sign in
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-        if (error) throw error;
-
-        // Update last login in Prisma
-        await fetch('/api/auth/signin', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId: data.user.id }),
-        });
-
-        router.refresh(); // Refresh to update the session state
-      } else {
-        // Validate passwords match
-        if (password !== confirmPassword) {
-          throw new Error('Passwords do not match');
-        }
-
-        // Sign up
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/auth/callback`,
-          },
-        });
-
-        if (error) throw error;
-
-        // Create user in Prisma
-        await fetch('/api/auth/signup', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            id: data.user!.id,
-            email: data.user!.email,
-          }),
-        });
-
-        // Show success message
-        alert('Please check your email to verify your account.');
-      }
-    } catch (err) {
-      console.error('Authentication error:', err);
-      setError(err instanceof Error ? err.message : 'An error occurred');
-    } finally {
-      setIsLoading(false);
-    }
+    // Handle authentication logic here
+    console.log('Auth submitted:', { email, password, isLogin });
   };
 
   return (
-    <main className="flex items-center justify-center min-h-full">
-      <section className="w-full max-w-md rounded-lg p-8">
-        <header className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">
-            {isSignIn ? 'Welcome Back' : 'Create Account'}
-          </h1>
-          <p className="mt-2 text-gray-600">
-            {isSignIn ? 'Sign in to your account' : 'Sign up to get started'}
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl shadow-lg w-full max-w-md p-6 relative">
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          className="absolute right-4 top-4 text-gray-400 hover:text-gray-600"
+        >
+          <Icon icon="ph:x" className="w-5 h-5" />
+        </button>
+
+        {/* Header */}
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-semibold text-gray-900">
+            {isLogin ? 'Welcome back' : 'Create an account'}
+          </h2>
+          <p className="text-gray-600 mt-1">
+            {isLogin ? 'Login to access your decks' : 'Sign up to start learning'}
           </p>
-        </header>
-          
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-            <span className="block sm:inline">{error}</span>
-          </div>
-        )}
+        </div>
 
+        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          <FormInput
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            label="Email"
-            required
-            error={false}
-          />
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+              Email
+            </label>
+            <input
+              type="email"
+              id="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Enter your email"
+              required
+            />
+          </div>
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+              Password
+            </label>
+            <input
+              type="password"
+              id="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Enter your password"
+              required
+            />
+          </div>
 
-          <FormInput
-            id="password"
-            type={showPassword ? 'text' : 'password'}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            label="Password"
-            required
-            error={false}
-            showPasswordToggle
-            showPassword={showPassword}
-            onTogglePassword={() => setShowPassword(!showPassword)}
-          />
-
-          {!isSignIn && password.length > 0 && (
-            <>
-              <FormInput
-                id="confirmPassword"
-                type={showConfirmPassword ? 'text' : 'password'}
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                label="Confirm Password"
-                required
-                error={confirmPassword.length > 0 && password !== confirmPassword}
-                showPasswordToggle
-                showPassword={showConfirmPassword}
-                onTogglePassword={() => setShowConfirmPassword(!showConfirmPassword)}
-              />
-              <PasswordStrengthMeter password={password} />
-            </>
-          )}
-
+          {/* Submit button */}
           <button
             type="submit"
-            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={isLoading || (!isSignIn && password !== confirmPassword)}
+            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors"
           >
-            {isLoading ? (
-              <Icon icon="ph:circle-notch" className="w-5 h-5 animate-spin" />
-            ) : (
-              isSignIn ? 'Sign In' : 'Create Account'
-            )}
+            {isLogin ? 'Login' : 'Sign up'}
           </button>
-        </form>
 
-        <footer className="mt-6 text-center">
-          <p className="text-sm text-gray-600">
-            {isSignIn ? "Don't have an account?" : "Already have an account?"}{' '}
-            <button 
-              onClick={() => {
-                setIsSignIn(!isSignIn);
-                setError(null);
-                setPassword('');
-                setConfirmPassword('');
-              }}
-              className="font-medium text-blue-600 hover:text-blue-500"
+          {/* Toggle between login and signup */}
+          <div className="text-center mt-4">
+            <button
+              type="button"
+              onClick={() => setIsLogin(!isLogin)}
+              className="text-blue-600 hover:text-blue-700 text-sm"
             >
-              {isSignIn ? 'Sign up' : 'Sign in'}
+              {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Login'}
             </button>
-          </p>
-        </footer>
-      </section>
-    </main>
+          </div>
+        </form>
+      </div>
+    </div>
   );
-} 
+}; 

@@ -1,12 +1,11 @@
 "use client"
 
-import { Icon } from '@iconify/react';
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
 import { Session } from '@supabase/supabase-js';
 import { NavigationTabs, TopNav } from './components/NavigationTabs';
-import { useRouter } from 'next/navigation';
-import Profile from './profile/Profile';
+import Profile from '../profile/page';
+import AuthForm from '../auth/AuthForm';
 
 const Sidebar = ({ isOpen }: { isOpen: boolean }) => {
   return (
@@ -19,10 +18,10 @@ const Sidebar = ({ isOpen }: { isOpen: boolean }) => {
 
 export default function Dashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [showProfile, setShowProfile] = useState(false);
+  const [showAuth, setShowAuth] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showProfile, setShowProfile] = useState(false);
-  const router = useRouter();
   const supabase = createClient();
 
   useEffect(() => {
@@ -30,9 +29,6 @@ export default function Dashboard() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setLoading(false);
-      if (!session) {
-        router.push('/');
-      }
     });
 
     // Listen for auth changes
@@ -40,35 +36,40 @@ export default function Dashboard() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
-      if (!session) {
-        router.push('/');
-      }
     });
 
     return () => subscription.unsubscribe();
-  }, [router, supabase]);
+  }, [supabase]);
 
-  if (loading) {
-    return (
-      <div className="flex flex-col h-screen bg-gray-50">
-        <TopNav 
-          onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} 
-          isOpen={isSidebarOpen}
-          onProfileClick={() => setShowProfile(true)}
-        />
-        <div className="flex flex-1 overflow-hidden">
-          <Sidebar isOpen={isSidebarOpen} />
-          <main className="flex-1 p-4 sm:p-6 md:p-8 overflow-auto flex items-center justify-center">
-            <Icon icon="ph:circle-notch" className="w-8 h-8 animate-spin text-blue-600" />
-          </main>
+  const mainContent = () => {
+    if (loading) {
+      return (
+        <div className="flex items-center justify-center h-full">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
         </div>
+      );
+    }
+
+    if (showAuth || (!session && !showProfile)) {
+      return (
+        <div className="flex items-center justify-center h-full">
+          <div className="w-full max-w-md">
+            <AuthForm />
+          </div>
+        </div>
+      );
+    }
+
+    if (showProfile) {
+      return <Profile />;
+    }
+
+    return (
+      <div className="text-center">
+        <p className="mt-2 text-gray-600">Start creating your flashcard decks.</p>
       </div>
     );
-  }
-
-  if (!session) {
-    return null;
-  }
+  };
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
@@ -76,17 +77,13 @@ export default function Dashboard() {
         onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} 
         isOpen={isSidebarOpen}
         onProfileClick={() => setShowProfile(true)}
+        onAuthClick={() => setShowAuth(true)}
+        isLoggedIn={!!session}
       />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar isOpen={isSidebarOpen} />
         <main className="flex-1 p-4 sm:p-6 md:p-8 overflow-auto">
-          {showProfile ? (
-            <Profile />
-          ) : (
-            <div className="text-center">
-              <p className="mt-2 text-gray-600">Start creating your flashcard decks.</p>
-            </div>
-          )}
+          {mainContent()}
         </main>
       </div>
       {/* Overlay for mobile when sidebar is open */}

@@ -55,11 +55,9 @@ export const config = {
     /*
      * Match all routes that require authentication:
      * - /dashboard routes (all dashboard pages)
-     * - /auth routes (for redirecting authenticated users)
      * - /api routes (except public endpoints)
      */
     '/dashboard/:path*',
-    '/auth/:path*',
     '/api/:path*',
   ],
 } 
