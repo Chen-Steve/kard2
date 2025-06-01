@@ -6,6 +6,7 @@ import { Session } from '@supabase/supabase-js';
 import { NavigationTabs, TopNav } from './components/NavigationTabs';
 import Profile from '../profile/page';
 import AuthForm from '../auth/AuthForm';
+import { Icon } from '@iconify/react';
 
 const Sidebar = ({ isOpen }: { isOpen: boolean }) => {
   return (
@@ -86,8 +87,11 @@ export default function Dashboard() {
     }
 
     return (
-      <div className="text-center">
-        <p className="mt-2 text-gray-600">Start creating your flashcard decks.</p>
+      <div className="flex flex-col items-center justify-center h-full">
+        <p className="text-gray-700 text-md">Start creating your flashcards</p>
+        <button className="mt-4 p-3 rounded-full bg-blue-500 hover:bg-blue-600 text-white transition-colors">
+          <Icon icon="ph:plus" width="20" height="20" />
+        </button>
       </div>
     );
   };
