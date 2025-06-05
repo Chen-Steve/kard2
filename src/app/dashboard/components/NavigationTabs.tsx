@@ -4,6 +4,8 @@ import { ProfileDropdown } from './ProfileDropdown';
 
 interface NavigationTabsProps {
   isOpen: boolean;
+  activeButton?: string;
+  onNavigate?: (button: string) => void;
 }
 
 interface TopNavProps {
@@ -83,15 +85,19 @@ export const TopNav = ({ onMenuClick, onProfileClick, onAuthClick, isLoggedIn = 
   );
 };
 
-export const NavigationTabs = ({ isOpen }: NavigationTabsProps) => {
-  const [activeButton, setActiveButton] = useState('home');
+export const NavigationTabs = ({ isOpen, activeButton = 'home', onNavigate }: NavigationTabsProps) => {
+  const handleNavigation = (button: string) => {
+    if (onNavigate) {
+      onNavigate(button);
+    }
+  };
 
   return (
     <nav className={`px-3 pr-2 whitespace-nowrap transition-all duration-300 ${isOpen ? 'w-64' : 'w-16'}`}>
       <ul className="space-y-2">
         <li>
           <button 
-            onClick={() => setActiveButton('home')}
+            onClick={() => handleNavigation('home')}
             className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors
               ${activeButton === 'home' 
                 ? 'bg-blue-50 text-blue-600' 
@@ -108,7 +114,7 @@ export const NavigationTabs = ({ isOpen }: NavigationTabsProps) => {
         </li>
         <li>
           <button 
-            onClick={() => setActiveButton('decks')}
+            onClick={() => handleNavigation('decks')}
             className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors
               ${activeButton === 'decks' 
                 ? 'bg-blue-50 text-blue-600' 
@@ -124,11 +130,20 @@ export const NavigationTabs = ({ isOpen }: NavigationTabsProps) => {
           </button>
         </li>
         <li>
-          <button className={`w-full flex items-center gap-3 px-3 py-2 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors group`}>
+          <button 
+            onClick={() => handleNavigation('create')}
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors
+              ${activeButton === 'create' 
+                ? 'bg-blue-50 text-blue-600' 
+                : 'text-gray-700 hover:bg-gray-100'} group`}
+          >
             <div className="flex items-center min-w-[20px] justify-center">
-              <Icon icon="ph:plus-circle" className="w-5 h-5 text-gray-600 group-hover:text-blue-600 transition-colors" />
+              <Icon 
+                icon="ph:plus-circle" 
+                className={`w-5 h-5 ${activeButton === 'create' ? 'text-blue-600' : 'text-gray-600 group-hover:text-blue-600'} transition-colors flex-shrink-0`} 
+              />
             </div>
-            <span className={`overflow-hidden transition-all duration-300 text-blue-600 font-medium ${isOpen ? 'opacity-100 w-auto' : 'opacity-0 w-0'}`}>Create</span>
+            <span className={`overflow-hidden transition-all duration-300 ${activeButton === 'create' ? 'text-blue-600 font-medium' : 'text-blue-600 font-medium'} ${isOpen ? 'opacity-100 w-auto' : 'opacity-0 w-0'}`}>Create</span>
           </button>
         </li>
         
@@ -139,7 +154,7 @@ export const NavigationTabs = ({ isOpen }: NavigationTabsProps) => {
 
         <li>
           <button 
-            onClick={() => setActiveButton('learn')}
+            onClick={() => handleNavigation('learn')}
             className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors
               ${activeButton === 'learn' 
                 ? 'bg-blue-50 text-blue-600' 
@@ -156,7 +171,7 @@ export const NavigationTabs = ({ isOpen }: NavigationTabsProps) => {
         </li>
         <li>
           <button 
-            onClick={() => setActiveButton('test')}
+            onClick={() => handleNavigation('test')}
             className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors
               ${activeButton === 'test' 
                 ? 'bg-blue-50 text-blue-600' 
@@ -173,7 +188,7 @@ export const NavigationTabs = ({ isOpen }: NavigationTabsProps) => {
         </li>
         <li>
           <button 
-            onClick={() => setActiveButton('matching')}
+            onClick={() => handleNavigation('matching')}
             className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors
               ${activeButton === 'matching' 
                 ? 'bg-blue-50 text-blue-600' 
@@ -190,7 +205,7 @@ export const NavigationTabs = ({ isOpen }: NavigationTabsProps) => {
         </li>
         <li>
           <button 
-            onClick={() => setActiveButton('kchat')}
+            onClick={() => handleNavigation('kchat')}
             className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors
               ${activeButton === 'kchat' 
                 ? 'bg-blue-50 text-blue-600' 

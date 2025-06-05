@@ -6,15 +6,17 @@ import { Session } from '@supabase/supabase-js';
 import { NavigationTabs, TopNav } from './components/NavigationTabs';
 import Profile from '../profile/page';
 import AuthForm from '../auth/AuthForm';
+import CreateFlashcards from './create/page';
+import YourDecks from './decks/page';
 import { Icon } from '@iconify/react';
 
-const Sidebar = ({ isOpen }: { isOpen: boolean }) => {
+const Sidebar = ({ isOpen, activeView, onNavigate }: { isOpen: boolean; activeView: string; onNavigate: (view: string) => void }) => {
   return (
     <div className={`${isOpen ? 'w-44 sm:w-44 md:w-48 translate-x-0' : 'w-44 sm:w-16 md:w-16 -translate-x-full sm:translate-x-0'} 
                     bg-white shadow-sm
                     transition-all duration-300 fixed sm:relative h-full z-20 overflow-hidden
                     ${isOpen ? 'sm:w-44 md:w-48' : 'sm:w-16'}`}>
-      <NavigationTabs isOpen={isOpen} />
+      <NavigationTabs isOpen={isOpen} activeButton={activeView} onNavigate={onNavigate} />
     </div>
   );
 };
@@ -23,6 +25,9 @@ export default function Dashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
+  const [showCreate, setShowCreate] = useState(false);
+  const [showDecks, setShowDecks] = useState(false);
+  const [activeView, setActiveView] = useState('home');
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
@@ -63,6 +68,39 @@ export default function Dashboard() {
     return () => subscription.unsubscribe();
   }, [supabase]);
 
+  const handleNavigation = (view: string) => {
+    setActiveView(view);
+    
+    // Reset all views
+    setShowProfile(false);
+    setShowAuth(false);
+    setShowCreate(false);
+    setShowDecks(false);
+    
+    // Set the appropriate view
+    switch (view) {
+      case 'create':
+        setShowCreate(true);
+        break;
+      case 'decks':
+        setShowDecks(true);
+        break;
+      case 'home':
+        // Default dashboard view
+        break;
+      // Add other cases as needed
+      default:
+        break;
+    }
+  };
+
+  const handleCreateClick = () => {
+    setActiveView('create');
+    setShowCreate(true);
+  };
+
+
+
   const mainContent = () => {
     if (loading) {
       return (
@@ -86,10 +124,21 @@ export default function Dashboard() {
       return <Profile />;
     }
 
+    if (showCreate) {
+      return <CreateFlashcards />;
+    }
+
+    if (showDecks) {
+      return <YourDecks onNavigateToCreate={handleCreateClick} />;
+    }
+
     return (
       <div className="flex flex-col items-center justify-center h-full">
         <p className="text-gray-700 text-md">Start creating your flashcards</p>
-        <button className="mt-4 p-3 rounded-full bg-blue-500 hover:bg-blue-600 text-white transition-colors">
+        <button 
+          onClick={handleCreateClick}
+          className="mt-4 p-3 rounded-full bg-blue-500 hover:bg-blue-600 text-white transition-colors"
+        >
           <Icon icon="ph:plus" width="20" height="20" />
         </button>
       </div>
@@ -106,7 +155,7 @@ export default function Dashboard() {
         isLoggedIn={!!session}
       />
       <div className="flex flex-1 overflow-hidden">
-        <Sidebar isOpen={isSidebarOpen} />
+        <Sidebar isOpen={isSidebarOpen} activeView={activeView} onNavigate={handleNavigation} />
         <main className={`flex-1 p-1 overflow-auto transition-all duration-300
                          ${isSidebarOpen ? 'sm:ml-0' : 'sm:ml-0'}`}>
           {mainContent()}
