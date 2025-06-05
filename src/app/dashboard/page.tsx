@@ -8,7 +8,7 @@ import Profile from '../profile/page';
 import AuthForm from '../auth/AuthForm';
 import CreateFlashcards from './create/page';
 import YourDecks from './decks/page';
-import { Icon } from '@iconify/react';
+import Home from './home/page';
 
 const Sidebar = ({ isOpen, activeView, onNavigate }: { isOpen: boolean; activeView: string; onNavigate: (view: string) => void }) => {
   return (
@@ -132,17 +132,7 @@ export default function Dashboard() {
       return <YourDecks onNavigateToCreate={handleCreateClick} />;
     }
 
-    return (
-      <div className="flex flex-col items-center justify-center h-full">
-        <p className="text-gray-700 text-md">Start creating your flashcards</p>
-        <button 
-          onClick={handleCreateClick}
-          className="mt-4 p-3 rounded-full bg-blue-500 hover:bg-blue-600 text-white transition-colors"
-        >
-          <Icon icon="ph:plus" width="20" height="20" />
-        </button>
-      </div>
-    );
+    return <Home onNavigateToCreate={handleCreateClick} />;
   };
 
   return (

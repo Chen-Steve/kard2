@@ -39,7 +39,7 @@ export const TopNav = ({ onMenuClick, onProfileClick, onAuthClick, isLoggedIn = 
             <input 
               type="text" 
               placeholder="Search decks..." 
-              className="w-full h-10 sm:h-12 px-4 sm:px-5 pl-10 sm:pl-12 text-sm sm:text-base bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+              className="w-full h-10 sm:h-12 px-4 sm:px-5 pl-10 sm:pl-12 text-black text-sm sm:text-base bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
             />
             <Icon 
               icon="ph:magnifying-glass" 
