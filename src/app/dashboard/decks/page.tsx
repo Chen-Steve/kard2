@@ -14,7 +14,11 @@ interface YourDecksProps {
   selectedDeck?: Deck | null;
 }
 
-export default function YourDecks({ onNavigateToCreate, searchQuery = '', selectedDeck: initialSelectedDeck }: YourDecksProps) {
+export default function YourDecks({ 
+  onNavigateToCreate, 
+  searchQuery = '', 
+  selectedDeck: initialSelectedDeck,
+}: YourDecksProps) {
   const [decks, setDecks] = useState<Deck[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDeck, setSelectedDeck] = useState<Deck | null>(null);
@@ -126,7 +130,7 @@ export default function YourDecks({ onNavigateToCreate, searchQuery = '', select
     } catch (error) {
       console.error('Error deleting deck:', error);
       toast.error('Failed to delete deck', {
-        description: 'Please try again.'
+        description: 'There was Please try again.'
       });
     } finally {
       toast.dismiss(loadingToast);
@@ -195,39 +199,39 @@ export default function YourDecks({ onNavigateToCreate, searchQuery = '', select
       </Modal>
 
       {/* Content */}
-      <div className="flex-1 overflow-auto">
-        <div className="max-w-[1400px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="h-full mx-1 mt-1 overflow-auto">
+        <div className="bg-gray-50 p-3">
           {loading ? (
             <div className="flex items-center justify-center h-64">
               <div className="animate-spin rounded-md h-8 w-8 border-b-2 border-blue-600" />
             </div>
-                      ) : decks.length === 0 ? (
-              <div className="text-center py-20">
-                <Icon icon="ph:cards" className="w-24 h-24 text-gray-300 mx-auto mb-6" />
-                <h2 className="text-xl font-medium text-gray-900 mb-2">No decks yet</h2>
-                <p className="text-gray-500 mb-6">Create your first deck to get started with flashcards</p>
-                <button
-                  onClick={onNavigateToCreate}
-                  className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-                >
-                  Create Your First Deck
-                </button>
-              </div>
+          ) : decks.length === 0 ? (
+            <div className="text-center py-20">
+              <Icon icon="ph:cards" className="w-24 h-24 text-gray-300 mx-auto mb-6" />
+              <h2 className="text-xl font-medium text-gray-900 mb-2">No decks yet</h2>
+              <p className="text-gray-500 mb-6">Create your first deck to get started with flashcards</p>
+              <button
+                onClick={onNavigateToCreate}
+                className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              >
+                Create Your First Deck
+              </button>
+            </div>
           ) : filteredDecks.length === 0 ? (
-              <div className="text-center py-20">
-                <Icon icon="ph:magnifying-glass" className="w-24 h-24 text-gray-300 mx-auto mb-6" />
-                <h2 className="text-xl font-medium text-gray-900 mb-2">No decks found</h2>
-                <p className="text-gray-500 mb-6">No decks match your search query &quot;{searchQuery}&quot;</p>
-              </div>
+            <div className="text-center py-20">
+              <Icon icon="ph:magnifying-glass" className="w-24 h-24 text-gray-300 mx-auto mb-6" />
+              <h2 className="text-xl font-medium text-gray-900 mb-2">No decks found</h2>
+              <p className="text-gray-500 mb-6">No decks match your search query &quot;{searchQuery}&quot;</p>
+            </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-3">
               {filteredDecks.map((deck) => (
                 <div
                   key={deck.id}
-                  className="bg-white border border-gray-200 rounded-lg p-5 hover:shadow-lg transition-all duration-200 group cursor-pointer"
+                  className="p-3 bg-white rounded hover:bg-gray-50 transition-all duration-200 group cursor-pointer shadow-sm"
                   onClick={() => openDeckDetails(deck)}
                 >
-                                    <header className="flex items-start justify-between mb-4">
+                  <header className="flex items-start justify-between mb-4">
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
                         {deck.name}
@@ -267,7 +271,7 @@ export default function YourDecks({ onNavigateToCreate, searchQuery = '', select
             </div>
           )}
         </div>
-      </div>
+      </main>
     </div>
   );
 } 

@@ -124,8 +124,6 @@ export default function Dashboard() {
     }
   };
 
-
-
   const mainContent = () => {
     if (loading) {
       return (
@@ -154,7 +152,11 @@ export default function Dashboard() {
     }
 
     if (showDecks) {
-      return <YourDecks onNavigateToCreate={handleCreateClick} searchQuery={searchQuery} selectedDeck={selectedDeckFromHome} />;
+      return <YourDecks 
+        onNavigateToCreate={handleCreateClick} 
+        searchQuery={searchQuery} 
+        selectedDeck={selectedDeckFromHome}
+      />;
     }
 
     return <Home onNavigateToCreate={handleCreateClick} onNavigateToDeck={handleDeckClick} searchQuery={searchQuery} />;
@@ -172,8 +174,7 @@ export default function Dashboard() {
       />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar isOpen={isSidebarOpen} activeView={activeView} onNavigate={handleNavigation} />
-        <main className={`flex-1 p-1 overflow-auto transition-all duration-300
-                         ${isSidebarOpen ? 'sm:ml-0' : 'sm:ml-0'}`}>
+        <main className="flex-1 overflow-auto transition-all duration-300">
           {mainContent()}
         </main>
       </div>

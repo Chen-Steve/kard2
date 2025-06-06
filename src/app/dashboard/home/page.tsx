@@ -222,25 +222,6 @@ export default function Home({ onNavigateToCreate, onNavigateToDeck, searchQuery
                 ))}
               </meter>
             </article>
-
-            <article className="bg-white rounded-sm shadow p-3">
-              <h2 className="text-lg font-medium text-gray-900 mb-3">Today&apos;s Goal</h2>
-              <header className="flex items-center gap-3">
-                <figure className="flex items-center justify-center w-12 h-12 bg-green-100 rounded-full">
-                  <Icon icon="ph:target" className="w-6 h-6 text-green-600" />
-                </figure>
-                <hgroup>
-                  <p className="text-2xl font-bold text-gray-900">12/20</p>
-                  <p className="text-sm text-gray-600">cards studied</p>
-                </hgroup>
-              </header>
-              <progress className="mt-3" value={60} max={100}>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className="bg-green-500 h-2 rounded-full" style={{ width: '60%' }}></div>
-                </div>
-                <p className="text-xs text-gray-500 mt-1">8 more to reach your goal!</p>
-              </progress>
-            </article>
           </div>
 
           {/* Right Side - Quick Study Modes */}
