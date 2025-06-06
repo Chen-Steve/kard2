@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Icon } from '@iconify/react';
 import { createClient } from '@/lib/supabase';
 import { Flashcard } from '@/types/deck';
@@ -28,12 +28,32 @@ export default function FlashcardListItem({
   const [editedCard, setEditedCard] = useState<{ front: string; back: string }>({ front: card.front, back: card.back });
   const [isDeleting, setIsDeleting] = useState(false);
   
+  const frontTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const backTextareaRef = useRef<HTMLTextAreaElement>(null);
+  
   const supabase = createClient();
 
   // Notify parent when editing state changes
   useEffect(() => {
     onEditingChange?.(isEditing);
   }, [isEditing, onEditingChange]);
+
+  // Auto-resize textareas when entering edit mode
+  useEffect(() => {
+    if (isEditing) {
+      const timer = setTimeout(() => {
+        if (frontTextareaRef.current) {
+          frontTextareaRef.current.style.height = 'auto';
+          frontTextareaRef.current.style.height = frontTextareaRef.current.scrollHeight + 'px';
+        }
+        if (backTextareaRef.current) {
+          backTextareaRef.current.style.height = 'auto';
+          backTextareaRef.current.style.height = backTextareaRef.current.scrollHeight + 'px';
+        }
+      }, 10);
+      return () => clearTimeout(timer);
+    }
+  }, [isEditing]);
 
   const handleSave = async () => {
     try {
@@ -125,22 +145,36 @@ export default function FlashcardListItem({
           <div className="space-y-3">
             <div>
               <div className="text-xs font-medium text-gray-500 mb-1">Term</div>
-              <input
-                type="text"
+              <textarea
+                ref={frontTextareaRef}
                 value={editedCard.front}
                 onChange={(e) => setEditedCard(prev => ({ ...prev, front: e.target.value }))}
-                className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                className="w-full px-0 py-1 text-sm border-0 border-b border-gray-300 bg-transparent focus:border-blue-500 focus:ring-0 focus:outline-none resize-none scrollbar-hide"
                 placeholder="Enter term"
+                rows={1}
+                style={{ minHeight: '1.5rem', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                onInput={(e) => {
+                  const target = e.target as HTMLTextAreaElement;
+                  target.style.height = 'auto';
+                  target.style.height = target.scrollHeight + 'px';
+                }}
               />
             </div>
             <div>
               <div className="text-xs font-medium text-gray-500 mb-1">Definition</div>
-              <input
-                type="text"
+              <textarea
+                ref={backTextareaRef}
                 value={editedCard.back}
                 onChange={(e) => setEditedCard(prev => ({ ...prev, back: e.target.value }))}
-                className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                className="w-full px-0 py-1 text-sm border-0 border-b border-gray-300 bg-transparent focus:border-blue-500 focus:ring-0 focus:outline-none resize-none scrollbar-hide"
                 placeholder="Enter definition"
+                rows={1}
+                style={{ minHeight: '1.5rem', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                onInput={(e) => {
+                  const target = e.target as HTMLTextAreaElement;
+                  target.style.height = 'auto';
+                  target.style.height = target.scrollHeight + 'px';
+                }}
               />
             </div>
             <div className="flex justify-end gap-2">
@@ -165,11 +199,15 @@ export default function FlashcardListItem({
           <>
             <div>
               <div className="text-xs font-medium text-gray-500 mb-0.5">Term</div>
-              <div className="text-sm text-gray-900">{card.front}</div>
+              <div className="text-sm text-gray-900 whitespace-pre-wrap" title={card.front}>
+                {card.front.length > 100 ? `${card.front.substring(0, 100)}...` : card.front}
+              </div>
             </div>
             <div className="border-t border-gray-100 pt-2">
               <div className="text-xs font-medium text-gray-500 mb-0.5">Definition</div>
-              <div className="text-sm text-gray-900">{card.back}</div>
+              <div className="text-sm text-gray-900 whitespace-pre-wrap" title={card.back}>
+                {card.back.length > 150 ? `${card.back.substring(0, 150)}...` : card.back}
+              </div>
             </div>
           </>
         )}

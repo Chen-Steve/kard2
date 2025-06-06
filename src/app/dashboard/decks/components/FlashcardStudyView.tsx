@@ -219,7 +219,7 @@ export default function FlashcardStudyView({ deck, onBack, onNavigateToCreate }:
                   </div>
                   
                   <div className="text-center max-w-full">
-                    <div className="text-xl font-medium text-gray-900 leading-relaxed">
+                    <div className="text-xl font-medium text-gray-900 leading-relaxed whitespace-pre-wrap">
                       {isFlipped ? currentCard.back : currentCard.front}
                     </div>
                   </div>
