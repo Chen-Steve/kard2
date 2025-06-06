@@ -12,6 +12,14 @@ interface FlashcardStudyViewProps {
 }
 
 export default function FlashcardStudyView({ deck, onBack, onNavigateToCreate }: FlashcardStudyViewProps) {
+  const [isClient, setIsClient] = useState(false);
+
+  // Set isClient to true when component mounts
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  // Initialize with default values
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [showTipsModal, setShowTipsModal] = useState(false);
@@ -20,7 +28,60 @@ export default function FlashcardStudyView({ deck, onBack, onNavigateToCreate }:
   );
   const [isEditing, setIsEditing] = useState(false);
 
+  // Load saved state after component mounts
+  useEffect(() => {
+    if (isClient) {
+      const savedIndex = localStorage.getItem(`study-${deck.id}-currentIndex`);
+      const savedIsFlipped = localStorage.getItem(`study-${deck.id}-isFlipped`);
+      const savedCards = localStorage.getItem(`study-${deck.id}-flashcards`);
+      
+      if (savedIndex !== null) {
+        setCurrentCardIndex(parseInt(savedIndex, 10));
+      }
+      
+      if (savedIsFlipped !== null) {
+        setIsFlipped(savedIsFlipped === 'true');
+      }
+      
+      if (savedCards) {
+        const parsedCards = JSON.parse(savedCards);
+        setFlashcards(
+          [...parsedCards].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+        );
+      }
+    }
+  }, [isClient, deck.id]);
+
+  // Save state when it changes
+  useEffect(() => {
+    if (isClient) {
+      localStorage.setItem(`study-${deck.id}-currentIndex`, currentCardIndex.toString());
+    }
+  }, [currentCardIndex, isClient, deck.id]);
+
+  useEffect(() => {
+    if (isClient) {
+      localStorage.setItem(`study-${deck.id}-isFlipped`, isFlipped.toString());
+    }
+  }, [isFlipped, isClient, deck.id]);
+
+  useEffect(() => {
+    if (isClient) {
+      localStorage.setItem(`study-${deck.id}-flashcards`, JSON.stringify(flashcards));
+    }
+  }, [flashcards, isClient, deck.id]);
+
   const currentCard = flashcards[currentCardIndex];
+
+  // Clear study state when leaving
+  const handleBack = () => {
+    if (isClient) {
+      localStorage.removeItem(`study-${deck.id}-currentIndex`);
+      localStorage.removeItem(`study-${deck.id}-isFlipped`);
+      localStorage.removeItem(`study-${deck.id}-flashcards`);
+    }
+    onBack();
+  };
 
   const handleCardUpdate = (updatedCard: Flashcard) => {
     setFlashcards(cards => 
@@ -85,14 +146,14 @@ export default function FlashcardStudyView({ deck, onBack, onNavigateToCreate }:
           break;
         case 'Escape':
           event.preventDefault();
-          onBack();
+          handleBack();
           break;
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [nextCard, prevCard, flipCard, onBack, isEditing]);
+  }, [nextCard, prevCard, flipCard, handleBack, isEditing]);
 
   if (flashcards.length === 0) {
     return (
@@ -101,7 +162,7 @@ export default function FlashcardStudyView({ deck, onBack, onNavigateToCreate }:
           <div className="max-w-4xl mx-auto px-6 py-8">
             <header className="flex items-center gap-3 mb-8">
               <button
-                onClick={onBack}
+                onClick={handleBack}
                 className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
                 title="Back to decks"
               >
@@ -132,7 +193,7 @@ export default function FlashcardStudyView({ deck, onBack, onNavigateToCreate }:
       {/* Back button */}
       <div className="absolute top-4 left-4 z-10">
         <button
-          onClick={onBack}
+          onClick={handleBack}
           className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
           title="Back to decks"
         >
@@ -146,37 +207,8 @@ export default function FlashcardStudyView({ deck, onBack, onNavigateToCreate }:
           {/* Large Flashcard Display */}
           <div className="mb-8">
             <div className="max-w-2xl mx-auto">
-              {/* Card Counter and Navigation */}
-              <div className="flex items-center justify-between mb-4">
-                <button
-                  onClick={prevCard}
-                  disabled={currentCardIndex === 0}
-                  className="p-3 rounded-lg bg-white shadow-sm border border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
-                >
-                  <Icon icon="ph:caret-left" className="w-5 h-5" />
-                </button>
-                
-                <div className="text-center">
-                  <div className="text-sm text-gray-600 mb-1">Card {currentCardIndex + 1} of {flashcards.length}</div>
-                  <div className="w-48 bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${((currentCardIndex + 1) / flashcards.length) * 100}%` }}
-                    />
-                  </div>
-                </div>
-
-                <button
-                  onClick={nextCard}
-                  disabled={currentCardIndex === flashcards.length - 1}
-                  className="p-3 rounded-lg bg-white shadow-sm border border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
-                >
-                  <Icon icon="ph:caret-right" className="w-5 h-5" />
-                </button>
-              </div>
-
               {/* The Flashcard */}
-              <div className="relative">
+              <div className="relative mb-6">
                 <div 
                   className="bg-white rounded-xl shadow-lg border border-gray-200 p-8 min-h-[300px] flex items-center justify-center cursor-pointer transition-all duration-300 hover:shadow-xl"
                   onClick={flipCard}
@@ -203,6 +235,35 @@ export default function FlashcardStudyView({ deck, onBack, onNavigateToCreate }:
                   title="Study Tips"
                 >
                   <Icon icon="ph:info" className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Card Counter and Navigation */}
+              <div className="flex items-center justify-between">
+                <button
+                  onClick={prevCard}
+                  disabled={currentCardIndex === 0}
+                  className="p-3 rounded-lg bg-white shadow-sm border border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+                >
+                  <Icon icon="ph:caret-left" className="w-5 h-5" />
+                </button>
+                
+                <div className="text-center">
+                  <div className="text-sm text-gray-600 mb-1">Card {currentCardIndex + 1} of {flashcards.length}</div>
+                  <div className="w-48 bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${((currentCardIndex + 1) / flashcards.length) * 100}%` }}
+                    />
+                  </div>
+                </div>
+
+                <button
+                  onClick={nextCard}
+                  disabled={currentCardIndex === flashcards.length - 1}
+                  className="p-3 rounded-lg bg-white shadow-sm border border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+                >
+                  <Icon icon="ph:caret-right" className="w-5 h-5" />
                 </button>
               </div>
 

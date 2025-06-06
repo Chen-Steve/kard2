@@ -5,40 +5,44 @@ import { createClient } from '@/lib/supabase';
 import { Icon } from '@iconify/react';
 import { toast } from 'sonner';
 import { Deck, DbDeck, DbFlashcard } from '@/types/deck';
-import FlashcardStudyView from '../components/FlashcardStudyView';
+import FlashcardStudyView from './components/FlashcardStudyView';
 import Modal from '@/components/Modal';
 
 interface YourDecksProps {
   onNavigateToCreate: () => void;
   searchQuery?: string;
   selectedDeck?: Deck | null;
+  onDeckSelect?: (deck: Deck) => void;
 }
 
 export default function YourDecks({ 
   onNavigateToCreate, 
   searchQuery = '', 
   selectedDeck: initialSelectedDeck,
+  onDeckSelect,
 }: YourDecksProps) {
   const [decks, setDecks] = useState<Deck[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedDeck, setSelectedDeck] = useState<Deck | null>(null);
-  const [showDeckDetails, setShowDeckDetails] = useState(false);
-  const [showSettingsDropdown, setShowSettingsDropdown] = useState(false);
   const [deletingDeck, setDeletingDeck] = useState<Deck | null>(null);
+  const [selectedDeck, setSelectedDeck] = useState<Deck | null>(initialSelectedDeck || null);
+  const [showDeckDetails, setShowDeckDetails] = useState(!!initialSelectedDeck);
+  const [showSettingsDropdown, setShowSettingsDropdown] = useState(false);
   const settingsDropdownRef = useRef<HTMLDivElement>(null);
   
   const supabase = createClient();
 
   useEffect(() => {
-    loadDecks();
-  }, []);
-
-  useEffect(() => {
+    console.log('YourDecks received selectedDeck:', !!initialSelectedDeck);
     if (initialSelectedDeck) {
+      console.log('Setting up study view for deck:', initialSelectedDeck.name);
       setSelectedDeck(initialSelectedDeck);
       setShowDeckDetails(true);
     }
   }, [initialSelectedDeck]);
+
+  useEffect(() => {
+    loadDecks();
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -149,11 +153,15 @@ export default function YourDecks({
   const openDeckDetails = (deck: Deck) => {
     setSelectedDeck(deck);
     setShowDeckDetails(true);
+    // Notify parent component about deck selection
+    onDeckSelect?.(deck);
   };
 
   const closeDeckDetails = () => {
     setShowDeckDetails(false);
     setSelectedDeck(null);
+    // Clear study mode state from localStorage
+    localStorage.removeItem('dashboard-is-study-mode');
   };
 
   // Filter decks based on search query

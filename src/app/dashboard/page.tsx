@@ -11,6 +11,7 @@ import YourDecks from './decks/page';
 import Home from './home/page';
 import { Deck } from '@/types/deck';
 
+
 const Sidebar = ({ isOpen, activeView, onNavigate }: { isOpen: boolean; activeView: string; onNavigate: (view: string) => void }) => {
   return (
     <div className={`${isOpen ? 'w-44 sm:w-44 md:w-48 translate-x-0' : 'w-44 sm:w-16 md:w-16 -translate-x-full sm:translate-x-0'} 
@@ -23,63 +24,121 @@ const Sidebar = ({ isOpen, activeView, onNavigate }: { isOpen: boolean; activeVi
 };
 
 export default function Dashboard() {
+  const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [showDecks, setShowDecks] = useState(false);
-  const [activeView, setActiveView] = useState('home');
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeView, setActiveView] = useState('home');
   const [selectedDeckFromHome, setSelectedDeckFromHome] = useState<Deck | null>(null);
-  const supabase = createClient();
+  const [isStudyMode, setIsStudyMode] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+
+  // Set isClient to true when component mounts
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  // Load saved state after component mounts
+  useEffect(() => {
+    if (isClient) {
+      const savedView = localStorage.getItem('dashboard-active-view');
+      const savedDeck = localStorage.getItem('dashboard-selected-deck');
+      const savedIsStudyMode = localStorage.getItem('dashboard-is-study-mode');
+      
+      console.log('Loading saved state:', { savedView, savedDeck: !!savedDeck, savedIsStudyMode });
+      
+      if (savedView) {
+        setActiveView(savedView);
+        switch (savedView) {  
+          case 'create':
+            setShowCreate(true);
+            break;
+          case 'decks':
+            setShowDecks(true);
+            break;
+        }
+      }
+      
+      if (savedDeck) {
+        const deck = JSON.parse(savedDeck);
+        setSelectedDeckFromHome(deck);
+        setShowDecks(true);
+        
+        // If we were in study mode, restore that state
+        if (savedIsStudyMode === 'true') {
+          console.log('Restoring study mode');
+          setIsStudyMode(true);
+        }
+      }
+    }
+  }, [isClient]);
+
+  // Save state to localStorage when it changes (only on client)
+  useEffect(() => {
+    if (isClient) {
+      localStorage.setItem('dashboard-active-view', activeView);
+    }
+  }, [activeView, isClient]);
 
   useEffect(() => {
-    // Set initial sidebar state based on screen size
-    const handleResize = () => {
-      if (window.innerWidth >= 640) { // sm breakpoint
-        setIsSidebarOpen(true);
+    if (isClient) {
+      if (selectedDeckFromHome) {
+        localStorage.setItem('dashboard-selected-deck', JSON.stringify(selectedDeckFromHome));
       } else {
-        setIsSidebarOpen(false);
+        localStorage.removeItem('dashboard-selected-deck');
+      }
+    }
+  }, [selectedDeckFromHome, isClient]);
+
+  useEffect(() => {
+    if (isClient) {
+      if (isStudyMode) {
+        localStorage.setItem('dashboard-is-study-mode', 'true');
+      } else {
+        localStorage.removeItem('dashboard-is-study-mode');
+      }
+    }
+  }, [isStudyMode, isClient]);
+
+  useEffect(() => {
+    const supabase = createClient();
+
+    const getSession = async () => {
+      try {
+        const { data: { session: activeSession } } = await supabase.auth.getSession();
+        setSession(activeSession);
+      } catch (error) {
+        console.error('Error getting session:', error);
+      } finally {
+        setLoading(false);
       }
     };
 
-    // Set initial state
-    handleResize();
+    getSession();
 
-    // Add resize listener
-    window.addEventListener('resize', handleResize);
-
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  useEffect(() => {
-    // Check current session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setLoading(false);
-    });
-
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
     });
 
     return () => subscription.unsubscribe();
-  }, [supabase]);
+  }, [isClient]);
 
   const handleNavigation = (view: string) => {
     setActiveView(view);
     
-    // Reset all views
-    setShowProfile(false);
-    setShowAuth(false);
-    setShowCreate(false);
-    setShowDecks(false);
-    setSelectedDeckFromHome(null); // Clear selected deck when navigating
+    // Only reset views if we're not restoring from localStorage
+    if (view !== 'decks' || !selectedDeckFromHome) {
+      // Reset all views
+      setShowProfile(false);
+      setShowAuth(false);
+      setShowCreate(false);
+      setShowDecks(false);
+      setSelectedDeckFromHome(null); // Clear selected deck when navigating
+    }
     
     // Set the appropriate view
     switch (view) {
@@ -110,7 +169,16 @@ export default function Dashboard() {
     setShowAuth(false);
     setShowCreate(false);
     setShowDecks(true);
+    setIsStudyMode(true);
+    // Save the state immediately (only if on client)
+    if (isClient) {
+      localStorage.setItem('dashboard-active-view', 'decks');
+      localStorage.setItem('dashboard-selected-deck', JSON.stringify(deck));
+      localStorage.setItem('dashboard-is-study-mode', 'true');
+    }
   };
+
+
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -152,11 +220,14 @@ export default function Dashboard() {
     }
 
     if (showDecks) {
-      return <YourDecks 
-        onNavigateToCreate={handleCreateClick} 
-        searchQuery={searchQuery} 
-        selectedDeck={selectedDeckFromHome}
-      />;
+      return (
+        <YourDecks 
+          onNavigateToCreate={handleCreateClick} 
+          searchQuery={searchQuery} 
+          selectedDeck={isStudyMode ? selectedDeckFromHome : null}
+          onDeckSelect={handleDeckClick}
+        />
+      );
     }
 
     return <Home onNavigateToCreate={handleCreateClick} onNavigateToDeck={handleDeckClick} searchQuery={searchQuery} />;
