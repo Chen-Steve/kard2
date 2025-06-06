@@ -1,6 +1,7 @@
 import './globals.css'
 import { createServerClient, CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { Toaster } from 'sonner'
 
 export const metadata = {
   title: 'Kard - Flashcard App',
@@ -44,6 +45,7 @@ export default async function RootLayout({
         <main className="min-h-screen bg-gray-50">
           {children}
         </main>
+        <Toaster richColors position="top-right" />
       </body>
     </html>
   )

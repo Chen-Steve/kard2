@@ -6,6 +6,7 @@ import { Icon } from '@iconify/react';
 import { toast } from 'sonner';
 import { Deck, DbDeck, DbFlashcard } from '@/types/deck';
 import FlashcardStudyView from '../components/FlashcardStudyView';
+import Modal from '@/components/Modal';
 
 interface YourDecksProps {
   onNavigateToCreate: () => void;
@@ -19,6 +20,7 @@ export default function YourDecks({ onNavigateToCreate, searchQuery = '', select
   const [selectedDeck, setSelectedDeck] = useState<Deck | null>(null);
   const [showDeckDetails, setShowDeckDetails] = useState(false);
   const [showSettingsDropdown, setShowSettingsDropdown] = useState(false);
+  const [deletingDeck, setDeletingDeck] = useState<Deck | null>(null);
   const settingsDropdownRef = useRef<HTMLDivElement>(null);
   
   const supabase = createClient();
@@ -100,24 +102,35 @@ export default function YourDecks({ onNavigateToCreate, searchQuery = '', select
     }
   };
 
-  const deleteDeck = async (deckId: string) => {
-    if (!confirm('Are you sure you want to delete this deck? This will also delete all flashcards in this deck.')) {
-      return;
-    }
-
+  const deleteDeck = async (deck: Deck) => {
+    const loadingToast = toast.loading('Deleting deck...');
     try {
-      const { error } = await supabase
+      // First delete all flashcards in the deck
+      const { error: flashcardsError } = await supabase
+        .from('flashcards')
+        .delete()
+        .eq('deck_id', deck.id);
+
+      if (flashcardsError) throw flashcardsError;
+
+      // Then delete the deck
+      const { error: deckError } = await supabase
         .from('decks')
         .delete()
-        .eq('id', deckId);
+        .eq('id', deck.id);
 
-      if (error) throw error;
+      if (deckError) throw deckError;
 
-      setDecks(decks.filter(deck => deck.id !== deckId));
-      toast.success('Deck deleted successfully');
+      setDecks(decks.filter(d => d.id !== deck.id));
+      toast.success('Deck deleted successfully',);
     } catch (error) {
       console.error('Error deleting deck:', error);
-      toast.error('Failed to delete deck');
+      toast.error('Failed to delete deck', {
+        description: 'Please try again.'
+      });
+    } finally {
+      toast.dismiss(loadingToast);
+      setDeletingDeck(null);
     }
   };
 
@@ -160,9 +173,30 @@ export default function YourDecks({ onNavigateToCreate, searchQuery = '', select
 
   return (
     <div className="h-full flex flex-col">
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={!!deletingDeck}
+        onClose={() => setDeletingDeck(null)}
+        title="Delete Deck"
+        primaryAction={{
+          label: "Delete",
+          onClick: () => deletingDeck && deleteDeck(deletingDeck),
+          variant: "danger"
+        }}
+        secondaryAction={{
+          label: "Cancel",
+          onClick: () => setDeletingDeck(null)
+        }}
+      >
+        <p className="text-gray-600">
+          This action cannot be undone.
+          All flashcards in this deck will be permanently deleted.
+        </p>
+      </Modal>
+
       {/* Content */}
       <div className="flex-1 overflow-auto">
-        <div className="max-w-7xl mx-auto px-2 py-8">
+        <div className="max-w-[1400px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {loading ? (
             <div className="flex items-center justify-center h-64">
               <div className="animate-spin rounded-md h-8 w-8 border-b-2 border-blue-600" />
@@ -186,7 +220,7 @@ export default function YourDecks({ onNavigateToCreate, searchQuery = '', select
                 <p className="text-gray-500 mb-6">No decks match your search query &quot;{searchQuery}&quot;</p>
               </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
               {filteredDecks.map((deck) => (
                 <div
                   key={deck.id}
@@ -207,7 +241,7 @@ export default function YourDecks({ onNavigateToCreate, searchQuery = '', select
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        deleteDeck(deck.id);
+                        setDeletingDeck(deck);
                       }}
                       className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 transition-all"
                     >
