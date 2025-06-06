@@ -5,12 +5,15 @@ import { createClient } from '@/lib/supabase';
 import { Icon } from '@iconify/react';
 import { toast } from 'sonner';
 import { Deck, DbDeck, DbFlashcard } from '@/types/deck';
+import FlashcardStudyView from '../components/FlashcardStudyView';
 
 interface YourDecksProps {
   onNavigateToCreate: () => void;
+  searchQuery?: string;
+  selectedDeck?: Deck | null;
 }
 
-export default function YourDecks({ onNavigateToCreate }: YourDecksProps) {
+export default function YourDecks({ onNavigateToCreate, searchQuery = '', selectedDeck: initialSelectedDeck }: YourDecksProps) {
   const [decks, setDecks] = useState<Deck[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDeck, setSelectedDeck] = useState<Deck | null>(null);
@@ -23,6 +26,13 @@ export default function YourDecks({ onNavigateToCreate }: YourDecksProps) {
   useEffect(() => {
     loadDecks();
   }, []);
+
+  useEffect(() => {
+    if (initialSelectedDeck) {
+      setSelectedDeck(initialSelectedDeck);
+      setShowDeckDetails(true);
+    }
+  }, [initialSelectedDeck]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -53,7 +63,7 @@ export default function YourDecks({ onNavigateToCreate }: YourDecksProps) {
           name,
           description,
           created_at,
-          flashcards (
+          flashcards!inner (
             id,
             front,
             back,
@@ -71,12 +81,14 @@ export default function YourDecks({ onNavigateToCreate }: YourDecksProps) {
         name: deck.name,
         description: deck.description,
         createdAt: deck.created_at,
-        flashcards: deck.flashcards.map((card: DbFlashcard) => ({
-          id: card.id,
-          front: card.front,
-          back: card.back,
-          createdAt: card.created_at
-        }))
+        flashcards: deck.flashcards
+          .map((card: DbFlashcard) => ({
+            id: card.id,
+            front: card.front,
+            back: card.back,
+            createdAt: card.created_at
+          }))
+          .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
       }));
       
       setDecks(transformedDecks);
@@ -127,90 +139,23 @@ export default function YourDecks({ onNavigateToCreate }: YourDecksProps) {
     setSelectedDeck(null);
   };
 
-  if (showDeckDetails && selectedDeck) {
+  // Filter decks based on search query
+  const filteredDecks = decks.filter(deck => {
+    if (!searchQuery.trim()) return true;
+    
+    const query = searchQuery.toLowerCase();
     return (
-      <div className="h-full flex flex-col">
-        {/* Flashcards List */}
-        <div className="flex-1 overflow-auto">
-          <div className="max-w-4xl mx-auto px-6 py-8">
-            <header className="flex items-start justify-between mb-2">
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={closeDeckDetails}
-                  className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
-                  title="Back to decks"
-                >
-                  <Icon icon="ph:arrow-left" className="w-5 h-5" />
-                </button>
-                <h1 className="text-2xl font-semibold text-gray-900">{selectedDeck.name}</h1>
-              </div>
-              <div className="relative" ref={settingsDropdownRef}>
-                <button
-                  onClick={() => setShowSettingsDropdown(!showSettingsDropdown)}
-                  className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
-                  title="Settings"
-                >
-                  <Icon icon="ph:gear" className="w-5 h-5" />
-                </button>
-                
-                {showSettingsDropdown && (
-                  <div className="absolute right-0 top-full mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10 py-1">
-                    <button
-                      onClick={() => {
-                        deleteDeck(selectedDeck.id);
-                        setShowSettingsDropdown(false);
-                      }}
-                      className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
-                    >
-                      <Icon icon="ph:trash" className="w-4 h-4" />
-                      Delete Deck
-                    </button>
-                  </div>
-                )}
-              </div>
-            </header>
-            {selectedDeck.description && (
-              <p className="text-gray-600 mb-4">{selectedDeck.description}</p>
-            )}
-            <h2 className="text-lg font-medium text-gray-900 mb-6">
-              Flashcards ({selectedDeck.flashcards.length})
-            </h2>
-
-            {selectedDeck.flashcards.length === 0 ? (
-              <div className="text-center py-12">
-                <Icon icon="ph:cards" className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500 mb-4">No flashcards in this deck yet</p>
-                <button
-                  onClick={onNavigateToCreate}
-                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-                >
-                  Add Flashcards
-                </button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {selectedDeck.flashcards.map((card, index) => (
-                  <article
-                    key={card.id}
-                    className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
-                  >
-                    <span className="text-xs text-gray-500 font-medium mb-3 block">#{index + 1}</span>
-                    <div className="mb-3">
-                      <label className="text-xs font-medium text-gray-700 uppercase tracking-wide">Front</label>
-                      <p className="text-sm text-gray-900 mt-1">{card.front}</p>
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium text-gray-700 uppercase tracking-wide">Back</label>
-                      <p className="text-sm text-gray-900 mt-1">{card.back}</p>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+      deck.name.toLowerCase().includes(query) ||
+      (deck.description && deck.description.toLowerCase().includes(query)) ||
+      deck.flashcards.some(card => 
+        card.front.toLowerCase().includes(query) ||
+        card.back.toLowerCase().includes(query)
+      )
     );
+  });
+
+  if (showDeckDetails && selectedDeck) {
+    return <FlashcardStudyView deck={selectedDeck} onBack={closeDeckDetails} onNavigateToCreate={onNavigateToCreate} />;
   }
 
   return (
@@ -234,9 +179,15 @@ export default function YourDecks({ onNavigateToCreate }: YourDecksProps) {
                   Create Your First Deck
                 </button>
               </div>
+          ) : filteredDecks.length === 0 ? (
+              <div className="text-center py-20">
+                <Icon icon="ph:magnifying-glass" className="w-24 h-24 text-gray-300 mx-auto mb-6" />
+                <h2 className="text-xl font-medium text-gray-900 mb-2">No decks found</h2>
+                <p className="text-gray-500 mb-6">No decks match your search query &quot;{searchQuery}&quot;</p>
+              </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {decks.map((deck) => (
+              {filteredDecks.map((deck) => (
                 <div
                   key={deck.id}
                   className="bg-white border border-gray-200 rounded-lg p-5 hover:shadow-lg transition-all duration-200 group cursor-pointer"

@@ -14,11 +14,28 @@ interface TopNavProps {
   onProfileClick: () => void;
   onAuthClick: () => void;
   isLoggedIn?: boolean;
+  onSearch?: (query: string) => void;
 }
 
-export const TopNav = ({ onMenuClick, onProfileClick, onAuthClick, isLoggedIn = false }: TopNavProps) => {
+export const TopNav = ({ onMenuClick, onProfileClick, onAuthClick, isLoggedIn = false, onSearch }: TopNavProps) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const profileButtonRef = useRef<HTMLButtonElement>(null) as React.RefObject<HTMLButtonElement>;
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    if (onSearch) {
+      onSearch(query);
+    }
+  };
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (onSearch) {
+      onSearch(searchQuery);
+    }
+  };
 
   return (
     <>
@@ -35,17 +52,19 @@ export const TopNav = ({ onMenuClick, onProfileClick, onAuthClick, isLoggedIn = 
         
         {/* Search bar container - responsive */}
         <div className="flex-1 mx-3 sm:absolute sm:left-1/2 sm:-translate-x-1/2 sm:w-full sm:max-w-2xl sm:mx-0 sm:px-4">
-          <div className="relative">
+          <form onSubmit={handleSearchSubmit} className="relative">
             <input 
               type="text" 
               placeholder="Search decks..." 
+              value={searchQuery}
+              onChange={handleSearchChange}
               className="w-full h-10 sm:h-12 px-4 sm:px-5 pl-10 sm:pl-12 text-black text-sm sm:text-base bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
             />
             <Icon 
               icon="ph:magnifying-glass" 
               className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-400"
             />
-          </div>
+          </form>
         </div>
         
         {/* Profile button with dropdown */}

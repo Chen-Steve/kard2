@@ -38,16 +38,18 @@ model Profile {
 }
 
 model Flashcard {
-  id          String      @id @default(cuid())
-  front       String      @db.Text
-  back        String      @db.Text
-  createdAt   DateTime    @default(now()) @map("created_at")
-  updatedAt   DateTime    @updatedAt @map("updated_at")
-  userId      String      @map("user_id")
-  deckId      String      @map("deck_id")
-  user        User        @relation(fields: [userId], references: [id])
-  deck        Deck        @relation(fields: [deckId], references: [id])
+  id            String      @id @default(cuid())
+  front         String      @db.Text
+  back          String      @db.Text
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+  orderPosition Int         @default(autoincrement()) @map("order_position")
+  userId        String      @map("user_id")
+  deckId        String      @map("deck_id")
+  user          User        @relation(fields: [userId], references: [id])
+  deck          Deck        @relation(fields: [deckId], references: [id])
 
+  @@index([deckId, orderPosition])
   @@map("flashcards")
 }
 

@@ -9,6 +9,7 @@ import AuthForm from '../auth/AuthForm';
 import CreateFlashcards from './create/page';
 import YourDecks from './decks/page';
 import Home from './home/page';
+import { Deck } from '@/types/deck';
 
 const Sidebar = ({ isOpen, activeView, onNavigate }: { isOpen: boolean; activeView: string; onNavigate: (view: string) => void }) => {
   return (
@@ -30,6 +31,8 @@ export default function Dashboard() {
   const [activeView, setActiveView] = useState('home');
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedDeckFromHome, setSelectedDeckFromHome] = useState<Deck | null>(null);
   const supabase = createClient();
 
   useEffect(() => {
@@ -76,6 +79,7 @@ export default function Dashboard() {
     setShowAuth(false);
     setShowCreate(false);
     setShowDecks(false);
+    setSelectedDeckFromHome(null); // Clear selected deck when navigating
     
     // Set the appropriate view
     switch (view) {
@@ -97,6 +101,27 @@ export default function Dashboard() {
   const handleCreateClick = () => {
     setActiveView('create');
     setShowCreate(true);
+  };
+
+  const handleDeckClick = (deck: Deck) => {
+    setSelectedDeckFromHome(deck);
+    setActiveView('decks');
+    setShowProfile(false);
+    setShowAuth(false);
+    setShowCreate(false);
+    setShowDecks(true);
+  };
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    // Navigate to decks page when searching
+    if (query.trim()) {
+      setActiveView('decks');
+      setShowProfile(false);
+      setShowAuth(false);
+      setShowCreate(false);
+      setShowDecks(true);
+    }
   };
 
 
@@ -129,10 +154,10 @@ export default function Dashboard() {
     }
 
     if (showDecks) {
-      return <YourDecks onNavigateToCreate={handleCreateClick} />;
+      return <YourDecks onNavigateToCreate={handleCreateClick} searchQuery={searchQuery} selectedDeck={selectedDeckFromHome} />;
     }
 
-    return <Home onNavigateToCreate={handleCreateClick} />;
+    return <Home onNavigateToCreate={handleCreateClick} onNavigateToDeck={handleDeckClick} searchQuery={searchQuery} />;
   };
 
   return (
@@ -143,6 +168,7 @@ export default function Dashboard() {
         onProfileClick={() => setShowProfile(true)}
         onAuthClick={() => setShowAuth(true)}
         isLoggedIn={!!session}
+        onSearch={handleSearch}
       />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar isOpen={isSidebarOpen} activeView={activeView} onNavigate={handleNavigation} />

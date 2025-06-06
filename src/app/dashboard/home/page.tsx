@@ -7,11 +7,13 @@ import { Deck, DbDeck, DbFlashcard } from '@/types/deck';
 
 interface HomeProps {
   onNavigateToCreate: () => void;
+  onNavigateToDeck?: (deck: Deck) => void;
+  searchQuery?: string;
 }
 
 
 
-export default function Home({ onNavigateToCreate }: HomeProps) {
+export default function Home({ onNavigateToCreate, onNavigateToDeck, searchQuery = '' }: HomeProps) {
   const [decks, setDecks] = useState<Deck[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -86,6 +88,21 @@ export default function Home({ onNavigateToCreate }: HomeProps) {
     return 'Good evening';
   };
 
+  // Filter decks based on search query
+  const filteredDecks = decks.filter(deck => {
+    if (!searchQuery.trim()) return true;
+    
+    const query = searchQuery.toLowerCase();
+    return (
+      deck.name.toLowerCase().includes(query) ||
+      (deck.description && deck.description.toLowerCase().includes(query)) ||
+      deck.flashcards.some(card => 
+        card.front.toLowerCase().includes(query) ||
+        card.back.toLowerCase().includes(query)
+      )
+    );
+  });
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -130,10 +147,11 @@ export default function Home({ onNavigateToCreate }: HomeProps) {
           <h2 className="text-lg font-medium text-gray-900 mb-3">Your Decks</h2>
           <div className="max-h-64 overflow-y-auto">
             <ul className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3">
-              {decks.map((deck) => (
+              {filteredDecks.map((deck) => (
                 <li
                   key={deck.id}
                   className="p-3 bg-gray-50 rounded hover:bg-gray-100 transition-colors cursor-pointer"
+                  onClick={() => onNavigateToDeck?.(deck)}
                 >
                   <article className="mb-3">
                     <header className="flex items-center mb-2">
@@ -156,6 +174,12 @@ export default function Home({ onNavigateToCreate }: HomeProps) {
                   </nav>
                 </li>
               ))}
+              {filteredDecks.length === 0 && decks.length > 0 && (
+                <li className="col-span-full text-center py-8">
+                  <Icon icon="ph:magnifying-glass" className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500 mb-3">No decks found for &quot;{searchQuery}&quot;</p>
+                </li>
+              )}
               {decks.length === 0 && (
                 <li className="col-span-full text-center py-8">
                   <Icon icon="ph:cards" className="w-12 h-12 text-gray-300 mx-auto mb-3" />
@@ -245,9 +269,6 @@ export default function Home({ onNavigateToCreate }: HomeProps) {
             </nav>
           </article>
         </section>
-
-
-
       </div>
     </main>
   );
